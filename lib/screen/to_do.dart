@@ -17,6 +17,7 @@ class _ToDoItemState extends State<ToDoItem> {
   bool isEdit = false;
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
+  String id = '';
 
 
   @override
@@ -27,6 +28,7 @@ class _ToDoItemState extends State<ToDoItem> {
       isEdit = true;
       titleController.text = todo?['title'];
       descriptionController.text = todo?['description'];
+      id = todo?['_id'];
     }
   }
 
@@ -81,7 +83,7 @@ class _ToDoItemState extends State<ToDoItem> {
               padding: EdgeInsets.all(10),
               backgroundColor: Colors.blue,
             ),
-            onPressed: addToDo,
+            onPressed: isEdit ? updateToDo : addToDo,
             child: Text(
               isEdit ? "Update" : "Add to list",
               style: TextStyle(
@@ -117,6 +119,31 @@ class _ToDoItemState extends State<ToDoItem> {
       Navigator.pop(context);
     } else {
       showFailedMessage("Create failed");
+    }
+  }
+
+  Future<void> updateToDo() async {
+    final uri = Uri.parse('https://api.nstack.in/v1/todos/$id');
+    final body = {
+      "title": titleController.text,
+      "description": descriptionController.text,
+      "is_completed": false
+    };
+    final response = await http.put(
+      uri,
+      body: jsonEncode(body),
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    );
+    print(response.statusCode);
+    print(response.body);
+    if(response.statusCode == 200){
+      print("Update success");
+      showSuccessMessage("Update successfully");
+      Navigator.pop(context);
+    } else {
+      showFailedMessage("Update failed");
     }
   }
 
